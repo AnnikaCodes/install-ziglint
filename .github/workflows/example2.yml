@@ -19,5 +19,6 @@ jobs:
         uses: AnnikaCodes/install-ziglint@v0.1
         with:
           binary-name: a_wacky_name_for_the_binary
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint code
         run: a_wacky_name_for_the_binary
