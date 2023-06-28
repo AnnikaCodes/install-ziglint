@@ -51,7 +51,7 @@ const MAX_TRIES = 5;
             tries++;
 
             if (latestRelease.message?.includes('API rate limit exceeded')) {
-                if (tries == MAX_TRIES) {
+                if (tries > MAX_TRIES) {
                     core.error('GitHub API rate limit exceeded too many times; aborting.');
                 } else {
                     // 20, 40, 80, 160, 320 seconds
