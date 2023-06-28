@@ -37,6 +37,7 @@ const API_URL = 'https://api.github.com/repos/AnnikaCodes/ziglint/releases/lates
                 },
             ).on('error', (e) => reject(e));
         });
+        core.debug(`Data: ${JSON.stringify(latestRelease)}`);
         core.info(`Latest release is ${latestRelease.name}`);
         const asset = latestRelease.assets.find(asset => asset.name === name);
         if (!asset) {
