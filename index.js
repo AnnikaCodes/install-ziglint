@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const core = require('@actions/core');
+const cache = require('@actions/tool-cache')
 
 const API_URL = 'https://api.github.com/repos/AnnikaCodes/ziglint/releases/latest';
 const MAX_TRIES = 5;
@@ -51,6 +52,15 @@ const MAX_TRIES = 5;
             tries++;
 
             if (latestRelease.message?.includes('API rate limit exceeded')) {
+                // use *any* cached version instead
+                const cachedBinary = cache.find(name);
+                if (cachedBinary) {
+                    core.warning(`GitHub API rate limit exceeded; using cached ${name} instead`);
+                    core.warning(`This may be an older version than the latest ziglint release!`);
+                    core.addPath(cachedBinary);
+                    return;
+                }
+
                 if (tries > MAX_TRIES) {
                     core.error('GitHub API rate limit exceeded too many times; aborting.');
                 } else {
@@ -61,6 +71,14 @@ const MAX_TRIES = 5;
                 }
             }
         } while (tries < MAX_TRIES);
+        // skip download if this version is cached
+        const cachedBinary = cache.find(name, latestRelease.name);
+        if (cachedBinary) {
+            core.info(`Using cached ziglint version ${latestRelease.name}`);
+            core.addPath(cachedBinary);
+            return;
+        }
+
         core.debug(`Data: ${JSON.stringify(latestRelease)}`);
         core.info(`Latest release is ${latestRelease.name}`);
         const asset = latestRelease.assets.find(asset => asset.name === name);
@@ -71,23 +89,17 @@ const MAX_TRIES = 5;
 
         const downloadUrl = asset.browser_download_url;
         core.info(`Downloading ${downloadUrl}...`);
-        const writeStream = fs.createWriteStream(binaryName);
-        await new Promise((resolve, reject) => {
-            https.get(downloadUrl, (response) => {
-                response.pipe(writeStream);
-                writeStream.on('finish', () => {
-                    writeStream.close();
-                    resolve();
-                });
-            }).on('error', (e) => reject(e));
-        });
-        core.info(`Successfully downloaded ${binaryName}`);
+        const path = await cache.downloadTool(downloadUrl, binaryName);
+        core.info(`Successfully downloaded to ${binaryName}`);
 
         // make it executable
-        if (os !== 'windows') fs.chmodSync(binaryName, 0o755);
-        const toAdd = path.resolve(process.cwd());
-        core.addPath(toAdd);
-        core.info(`Successfully added ${toAdd} to PATH`);
+        if (os !== 'windows') fs.chmodSync(path, 0o755);
+        core.addPath(path);
+        core.info(`Successfully added ${path} to PATH`);
+
+        // cache it
+        await cache.cacheFile(path, name, name, latestRelease.name);
+        core.info(`Successfully cached ${name} to key '${latestRelease.name}'`);
     } catch (error) {
         core.setFailed(error.message);
     }
