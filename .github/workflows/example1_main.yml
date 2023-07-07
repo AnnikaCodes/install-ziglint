@@ -17,5 +17,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install ziglint
         uses: AnnikaCodes/install-ziglint@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint code
         run: ziglint
