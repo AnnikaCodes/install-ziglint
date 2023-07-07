@@ -1,2 +1,6 @@
+## 0.1.2
+- Downloaded binaries are now cached in GitHub Actions. If the GitHub API is rate limited, it will use any cached version.
+## 0.1.1
+- API rate-limiting issues have been mitigated.
 ## 0.1.0
 This is the first version of the `AnnikaCodes/install-ziglint` GitHub Action. It can install the latest version of `ziglint` under a user-specified a name.
