@@ -89,16 +89,17 @@ const MAX_TRIES = 5;
 
         const downloadUrl = asset.browser_download_url;
         core.info(`Downloading ${downloadUrl}...`);
-        const path = await cache.downloadTool(downloadUrl, binaryName);
+        const binaryPath = await cache.downloadTool(downloadUrl, binaryName);
         core.info(`Successfully downloaded to ${binaryName}`);
 
         // make it executable
-        if (os !== 'windows') fs.chmodSync(path, 0o755);
-        core.addPath(path);
-        core.info(`Successfully added ${path} to PATH`);
+        if (os !== 'windows') fs.chmodSync(binaryPath, 0o755);
+        const toAdd = path.resolve(process.cwd());
+        core.addPath(toAdd);
+        core.info(`Successfully added ${toAdd} to PATH`);
 
         // cache it
-        await cache.cacheFile(path, name, name, latestRelease.name);
+        await cache.cacheFile(binaryPath, name, name, latestRelease.name);
         core.info(`Successfully cached ${name} to key '${latestRelease.name}'`);
     } catch (error) {
         core.setFailed(error.message);
