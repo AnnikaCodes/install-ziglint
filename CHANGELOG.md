@@ -1,3 +1,5 @@
+## 0.1.3
+- A bug with `tool-cache` has been fixed
 ## 0.1.2
 - Downloaded binaries are now cached in GitHub Actions. If the GitHub API is rate limited, it will use any cached version.
 ## 0.1.1
