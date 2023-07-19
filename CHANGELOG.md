@@ -1,3 +1,5 @@
+## 0.1.5
+- Now tries to build `ziglint` from source code if a release cannot be found.
 ## 0.1.4
 - Another attempt to fix the `tool-cache` bug.
 ## 0.1.3

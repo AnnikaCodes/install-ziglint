@@ -1,6 +1,6 @@
 {
   "name": "install-ziglint",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GitHub Action to install ziglint",
   "main": "index.js",
   "scripts": {
