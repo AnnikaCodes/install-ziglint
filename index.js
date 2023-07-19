@@ -49,7 +49,6 @@ async function handleNoReleases() {
 
 (async () => {
     try {
-        core.info(process.argv);
         const binaryName = process.argv[2] || 'ziglint';
         const token = process.argv[3] || '';
 
