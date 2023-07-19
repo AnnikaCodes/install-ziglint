@@ -53,7 +53,7 @@ const MAX_TRIES = 5;
 
             if (latestRelease.message?.includes('API rate limit exceeded')) {
                 // use *any* cached version instead
-                const cachedBinary = cache.find(name, '');
+                const cachedBinary = cache.find(name, '*');
                 if (cachedBinary) {
                     core.warning(`GitHub API rate limit exceeded; using cached ${name} instead`);
                     core.warning(`This may be an older version than the latest ziglint release!`);
