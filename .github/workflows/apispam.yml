@@ -1,0 +1,23 @@
+name: 'API rate limiting'
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+          os: [ubuntu-latest, macos-latest, windows-latest]
+          factor2: [1, 2, 3, 4, 5]
+          factor3: [1, 2, 3, 4, 5]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install ziglint
+        uses: AnnikaCodes/install-ziglint@main
+      - name: Lint code
+        run: ziglint
