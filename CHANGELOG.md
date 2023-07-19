@@ -1,3 +1,5 @@
+## 0.1.4
+- Another attempt to fix the `tool-cache` bug.
 ## 0.1.3
 - A bug with `tool-cache` has been fixed
 ## 0.1.2
