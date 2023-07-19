@@ -12,5 +12,11 @@ inputs:
     required: false
 
 runs:
-  using: 'node16'
-  main: 'index.js'
+  using: 'composite'
+  steps:
+    - name: Install nightly Zig
+      uses: goto-bus-stop/setup-zig@v1
+      with:
+        version: master
+    - run: node index.js ${{ inputs.binary-name }} ${{ inputs.token }}
+      shell: bash

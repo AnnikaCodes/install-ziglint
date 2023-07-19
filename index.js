@@ -2,14 +2,56 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const core = require('@actions/core');
-const cache = require('@actions/tool-cache')
+const cache = require('@actions/tool-cache');
+const child_process = require('child_process');
 
 const API_URL = 'https://api.github.com/repos/AnnikaCodes/ziglint/releases/latest';
-const MAX_TRIES = 5;
+const MAX_TRIES = 3;
+
+async function run(command, cwd = process.cwd()) {
+    return new Promise((resolve, reject) => {
+        child_process.exec(command, {cwd}, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve({stdout, stderr});
+            }
+        });
+    });
+}
+
+/**
+ * @returns {Promise<string>} the path to the build ziglint binary
+ */
+async function buildZiglintFromSource(binaryName) {
+    // we already have Zig installed from the setup-zig action
+    // clone the Ziglint source by running `git clone https://github.com/AnnikaCodes/ziglint.git`
+    await run('git clone https://github.com/AnnikaCodes/ziglint.git');
+
+    // build the binary by running `zig build -Doptimize=ReleaseFast`
+    await run('zig build -Doptimize=ReleaseFast', 'ziglint');
+
+    // check that the binary works
+    const ziglintPath = path.resolve(path.join(process.cwd(), 'ziglint', 'zig-out', 'bin', 'ziglint'));
+    await fs.copyFile(ziglintPath, binaryName);
+    const {stdout} = await run(`${binaryName} version`);
+    const version = stdout.trim();
+    core.info(`Successfully built ziglint ${version}`);
+    return path.resolve(path.join(process.cwd(), binaryName));
+}
+
+async function handleNoReleases() {
+    core.info(`Building ziglint from source...`);
+    const built = await buildZiglintFromSource();
+    core.addPath(built);
+    core.info(`Added ${built} to the path.`);
+}
 
 (async () => {
     try {
-        const binaryName = core.getInput('binary-name');
+        core.info(process.argv);
+        const binaryName = process.argv[2] || 'ziglint';
+        const token = process.argv[3] || '';
 
         let os = process.platform;
         if (os === 'win32') os = 'windows';
@@ -24,8 +66,8 @@ const MAX_TRIES = 5;
         core.info(`Looking for ${name}...`);
 
         const headers = {'User-Agent': 'install-ziglint GitHub Action'};
-        if (core.getInput('token')) {
-            headers['Authorization'] = `Bearer ${core.getInput('token')}`;
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
         const getAPIResponse = async () => {
             return new Promise((resolve, reject) => {
@@ -71,6 +113,13 @@ const MAX_TRIES = 5;
                 }
             }
         } while (tries < MAX_TRIES);
+
+        if (!latestRelease.name) {
+            core.warning(`Unable to find latest ziglint release.`);
+            await handleNoReleases();
+            return;
+        }
+
         // skip download if this version is cached
         const cachedBinary = cache.find(name, latestRelease.name);
         if (cachedBinary) {
@@ -83,7 +132,8 @@ const MAX_TRIES = 5;
         core.info(`Latest release is ${latestRelease.name}`);
         const asset = latestRelease.assets.find(asset => asset.name === name);
         if (!asset) {
-            core.setFailed(`ziglint release ${latestRelease.name} is not available for your platform (${name} not found)`);
+            core.warning(`ziglint release ${latestRelease.name} is not available for your platform (${name} not found)`);
+            await handleNoReleases();
             return;
         }
 
