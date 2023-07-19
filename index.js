@@ -33,16 +33,16 @@ async function buildZiglintFromSource(binaryName) {
 
     // check that the binary works
     const ziglintPath = path.resolve(path.join(process.cwd(), 'ziglint', 'zig-out', 'bin', 'ziglint'));
-    await fs.copyFile(ziglintPath, binaryName);
+    fs.copyFileSync(ziglintPath, binaryName);
     const {stdout} = await run(`${binaryName} version`);
     const version = stdout.trim();
     core.info(`Successfully built ziglint ${version}`);
     return path.resolve(path.join(process.cwd(), binaryName));
 }
 
-async function handleNoReleases() {
+async function handleNoReleases(binaryName) {
     core.info(`Building ziglint from source...`);
-    const built = await buildZiglintFromSource();
+    const built = await buildZiglintFromSource(binaryName);
     core.addPath(built);
     core.info(`Added ${built} to the path.`);
 }
@@ -115,7 +115,7 @@ async function handleNoReleases() {
 
         if (!latestRelease.name) {
             core.warning(`Unable to find latest ziglint release.`);
-            await handleNoReleases();
+            await handleNoReleases(binaryName);
             return;
         }
 
@@ -132,7 +132,7 @@ async function handleNoReleases() {
         const asset = latestRelease.assets.find(asset => asset.name === name);
         if (!asset) {
             core.warning(`ziglint release ${latestRelease.name} is not available for your platform (${name} not found)`);
-            await handleNoReleases();
+            await handleNoReleases(binaryName);
             return;
         }
 
