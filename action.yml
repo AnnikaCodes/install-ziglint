@@ -18,5 +18,13 @@ runs:
       uses: goto-bus-stop/setup-zig@v1
       with:
         version: master
-    - run: node index.js ${{ inputs.binary-name }} ${{ inputs.token }}
+    - name: Set path separator (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      run: echo "SEPARATOR=\\\\" >> "$GITHUB_ENV"
+      shell: bash
+    - name: Set path separator (non-Windows)
+      if: ${{ runner.os != 'Windows' }}
+      run: echo "SEPARATOR=/" >> "$GITHUB_ENV"
+      shell: bash
+    - run: node $GITHUB_ACTION_PATH${{env.SEPARATOR}}index.js ${{ inputs.binary-name }} ${{ inputs.token }}
       shell: bash

@@ -26,15 +26,23 @@ async function run(command, cwd = process.cwd()) {
 async function buildZiglintFromSource(binaryName) {
     // we already have Zig installed from the setup-zig action
     // clone the Ziglint source by running `git clone https://github.com/AnnikaCodes/ziglint.git`
-    await run('git clone https://github.com/AnnikaCodes/ziglint.git');
+    await run('git clone https://github.com/AnnikaCodes/ziglint.git ziglint_src');
 
     // build the binary by running `zig build -Doptimize=ReleaseFast`
-    await run('zig build -Doptimize=ReleaseFast', 'ziglint');
+    await run('zig build -Doptimize=ReleaseFast', 'ziglint_src');
 
     // check that the binary works
-    const ziglintPath = path.resolve(path.join(process.cwd(), 'ziglint', 'zig-out', 'bin', 'ziglint'));
+    const ziglintPath = path.resolve(path.join(process.cwd(), 'ziglint_src', 'zig-out', 'bin', 'ziglint'));
     fs.copyFileSync(ziglintPath, binaryName);
-    const {stdout} = await run(`${binaryName} version`);
+
+    let toRun;
+    if (process.platform === 'win32') {
+        toRun = `.\\${binaryName}.exe`;
+    } else {
+        toRun = `./${binaryName}`;
+    }
+
+    const {stdout} = await run(`${toRun} version`);
     const version = stdout.trim();
     core.info(`Successfully built ziglint ${version}`);
     return path.resolve(path.join(process.cwd(), binaryName));
@@ -43,7 +51,7 @@ async function buildZiglintFromSource(binaryName) {
 async function handleNoReleases(binaryName) {
     core.info(`Building ziglint from source...`);
     const built = await buildZiglintFromSource(binaryName);
-    core.addPath(built);
+    core.addPath(path.dirname(built));
     core.info(`Added ${built} to the path.`);
 }
 
@@ -98,7 +106,7 @@ async function handleNoReleases(binaryName) {
                 if (cachedBinary) {
                     core.warning(`GitHub API rate limit exceeded; using cached ${name} instead`);
                     core.warning(`This may be an older version than the latest ziglint release!`);
-                    core.addPath(cachedBinary);
+                    core.addPath(path.dirname(cachedBinary));
                     return;
                 }
 
@@ -123,7 +131,7 @@ async function handleNoReleases(binaryName) {
         const cachedBinary = cache.find(name, latestRelease.name);
         if (cachedBinary) {
             core.info(`Using cached ziglint version ${latestRelease.name}`);
-            core.addPath(cachedBinary);
+            core.addPath(path.dirname(cachedBinary));
             return;
         }
 
@@ -143,7 +151,7 @@ async function handleNoReleases(binaryName) {
 
         // make it executable
         if (os !== 'windows') fs.chmodSync(binaryPath, 0o755);
-        const toAdd = path.resolve(process.cwd());
+        const toAdd = path.dirname(binaryPath);
         core.addPath(toAdd);
         core.info(`Successfully added ${toAdd} to PATH`);
 
