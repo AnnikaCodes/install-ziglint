@@ -1,3 +1,6 @@
+## 0.1.6
+- Cleans up better after building from source.
+- Improves Windows compatibility.
 ## 0.1.5
 - Now tries to build `ziglint` from source code if a release cannot be found.
 ## 0.1.4
