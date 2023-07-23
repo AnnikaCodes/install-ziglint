@@ -35,6 +35,9 @@ async function buildZiglintFromSource(binaryName) {
     const ziglintPath = path.resolve(path.join(process.cwd(), 'ziglint_src', 'zig-out', 'bin', 'ziglint'));
     fs.copyFileSync(ziglintPath, binaryName);
 
+    // remove the source directory
+    fs.rmdirSync('ziglint_src', {recursive: true, force: true});
+
     let toRun;
     if (process.platform === 'win32') {
         toRun = `.\\${binaryName}.exe`;
