@@ -15,7 +15,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install nightly Zig
-      uses: goto-bus-stop/setup-zig@v2
+      uses: goto-bus-stop/setup-zig@default
       with:
         version: master
     - name: Set path separator (Windows)
