@@ -17,7 +17,7 @@ runs:
     - name: Install nightly Zig
       uses: goto-bus-stop/setup-zig@default
       with:
-        version: master
+        version: 0.14.1 # why doesn't latest work?
     - name: Set path separator (Windows)
       if: ${{ runner.os == 'Windows' }}
       run: echo "SEPARATOR=\\\\" >> "$GITHUB_ENV"
