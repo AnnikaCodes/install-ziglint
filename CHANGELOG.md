@@ -1,3 +1,5 @@
+## 0.1.7
+- Use Zig version 0.14.1 to support ziglint 0.0.8.
 ## 0.1.6
 - Cleans up better after building from source.
 - Improves Windows compatibility.
